@@ -10,14 +10,16 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:vscode-json-table-view.helloWorld"
+    "onCommand:tableViewUi.start",
+    "onWebviewPanel:tableViewUi"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-json-table-view.helloWorld",
-        "title": "Hello World"
+        "command": "tableViewUi.start",
+        "title": "Start tableViewUi",
+        "category": "Table View Ui"
       }
     ]
   },
@@ -41,5 +43,8 @@
     "mocha": "^7.1.2",
     "typescript": "^3.8.3",
     "vscode-test": "^1.4.0"
+  },
+  "dependencies": {
+    "handlebars": "^4.7.6"
   }
 }
