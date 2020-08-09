@@ -5,6 +5,7 @@ import livereload from "rollup-plugin-livereload";
 import { terser } from "rollup-plugin-terser";
 import sveltePreprocess from "svelte-preprocess";
 import typescript from "@rollup/plugin-typescript";
+import scss from 'rollup-plugin-scss';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -46,6 +47,7 @@ export default {
     file: "../dist/table_view_ui/bundle.js",
   },
   plugins: [
+    scss(),
     svelte({
       // enable run-time checks when not in production
       dev: !production,
