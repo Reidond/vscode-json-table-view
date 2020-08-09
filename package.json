@@ -10,16 +10,21 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:tableViewUi.start",
-    "onWebviewPanel:tableViewUi"
+    "onCustomEditor:vscode-json-table-view.jsonTableView"
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
+    "commands": [],
+    "customEditors": [
       {
-        "command": "tableViewUi.start",
-        "title": "Start tableViewUi",
-        "category": "Table View Ui"
+        "viewType": "vscode-json-table-view.jsonTableView",
+        "displayName": "JSON Table View",
+        "selector": [
+          {
+            "filenamePattern": "*.json"
+          }
+        ],
+        "priority": "default"
       }
     ]
   },

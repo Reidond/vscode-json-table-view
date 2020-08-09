@@ -7,7 +7,7 @@
 	<title>Svelte app</title>
 
 	<meta http-equiv="Content-Security-Policy"
-		content="default-src 'none'; img-src {{ webviewCspSource }} https:; script-src 'nonce-{{ nonce }}';">
+		content="default-src 'none'; img-src {{ webviewCspSource }} https:; style-src {{ webviewCspSource }}; script-src 'nonce-{{ nonce }}';">
 	<link rel='stylesheet' href='{{ globalStylesUri }}'>
 	<link rel='stylesheet' href='{{ stylesUri }}'>
 	<script defer nonce="{{ nonce }}" src="{{ scriptUri }}"></script>
