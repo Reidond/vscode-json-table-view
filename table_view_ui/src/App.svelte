@@ -1,4 +1,6 @@
 <script lang="ts">
+  import debounce from "debounce";
+
   // @ts-ignore
   const vscode = acquireVsCodeApi();
   let state;
@@ -12,12 +14,23 @@
     }
   }
 
+  $: {
+    changeJson(options);
+  }
+
   interface Header {
     [key: string]: any;
   }
 
   let options: Array<Header>;
   let header: Header;
+
+  const changeJson = debounce(() => {
+    vscode.postMessage({
+      type: "changeJson",
+      text: options,
+    });
+  }, 200);
 
   function updateContent(text) {
     options = JSON.parse(text);
@@ -69,7 +82,9 @@
         {#each options as option, i (`${i}-row`)}
           <tr>
             {#each Object.keys(header) as key, i (`${i}_${key}_cell_row`)}
-              <td>{option[key]}</td>
+              <td>
+                <input type="text" bind:value={option[key]} />
+              </td>
             {/each}
           </tr>
         {/each}

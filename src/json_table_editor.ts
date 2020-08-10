@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { getNonce } from './utils';
 import { TextDecoder } from 'util';
 import h from 'handlebars';
+import merge from 'lodash.merge';
 
 interface IResources {
   scriptUri: vscode.Uri;
@@ -76,6 +77,8 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
     // Receive message from the webview.
     webviewPanel.webview.onDidReceiveMessage(e => {
       switch (e.type) {
+        case "changeJson":
+          this.changeJson(document, e.text);
         default:
           return;
       }
@@ -84,7 +87,7 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
     updateWebview();
   }
 
-  private async _getResources(webview: vscode.Webview, nonce: string): Promise<IResources> {
+  private async _getResources(webview: vscode.Webview): Promise<IResources> {
     const scriptPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'dist', 'table_view_ui', 'bundle.js');
     const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
 
@@ -112,13 +115,23 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
 	 */
   private async _getHtmlForWebview(webview: vscode.Webview) {
     const nonce = getNonce();
-    const { scriptUri, stylesUri, globalStylesUri, indexHbs } = await this._getResources(webview, nonce);
+    const { scriptUri, stylesUri, globalStylesUri, indexHbs } = await this._getResources(webview);
     const template = h.compile(indexHbs);
 
     return template({ scriptUri, stylesUri, globalStylesUri, nonce, webviewCspSource: webview.cspSource });
   }
 
+  private changeJson(document: vscode.TextDocument, newJson: Array<any>) {
+    const json: Array<any> = this.getDocumentAsJson(document);
+    const newJsonArr: Array<any> = [];
+    json.forEach((o: any, i: number) => {
+      newJsonArr.push(merge(o, newJson[i]));
+    });
+    return this.updateTextDocument(document, newJsonArr);
+  }
+
 	/**
+   * JUST REFERENCE
 	 * Add a new scratch to the current document.
 	 */
   /* private addNewScratch(document: vscode.TextDocument) {
@@ -137,6 +150,7 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
   } */
 
 	/**
+   * JUST REFERENCE
 	 * Delete an existing scratch from a document.
 	 */
   /* private deleteScratch(document: vscode.TextDocument, id: string) {
