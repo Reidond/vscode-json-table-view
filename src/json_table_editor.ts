@@ -19,7 +19,7 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
     return providerRegistration;
   }
 
-  private static readonly viewType = 'vscode-json-table-view.jsonTableView';
+  private static readonly viewType = 'vscode-json-table-view.jsonTableEditor';
   private readonly _extensionUri: vscode.Uri;
 
   constructor(
@@ -42,8 +42,8 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
     webviewPanel.webview.options = {
       enableScripts: true,
       localResourceRoots: [
-        vscode.Uri.joinPath(this._extensionUri, 'table_view_ui', 'public'),
-        vscode.Uri.joinPath(this._extensionUri, 'dist', 'table_view_ui'),
+        vscode.Uri.joinPath(this._extensionUri, 'table_editor', 'public'),
+        vscode.Uri.joinPath(this._extensionUri, 'dist', 'table_editor'),
       ]
     };
     webviewPanel.webview.html = await this._getHtmlForWebview(webviewPanel.webview);
@@ -78,7 +78,7 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
     webviewPanel.webview.onDidReceiveMessage(e => {
       switch (e.type) {
         case "changeJson":
-          this.changeJson(document, e.text);
+          this.changeJson(document, e.payload);
         default:
           return;
       }
@@ -88,17 +88,17 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
   }
 
   private async _getResources(webview: vscode.Webview): Promise<IResources> {
-    const scriptPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'dist', 'table_view_ui', 'bundle.js');
+    const scriptPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'dist', 'table_editor', 'bundle.js');
     const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
 
-    const stylesPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'dist', 'table_view_ui', 'bundle.css');
+    const stylesPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'dist', 'table_editor', 'bundle.css');
     const stylesUri = webview.asWebviewUri(stylesPathOnDisk);
 
     const globalStylesPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'public', 'global.css');
     const globalStylesUri = webview.asWebviewUri(globalStylesPathOnDisk);
 
     const indexHbsRaw = await vscode.workspace.fs.readFile(
-      vscode.Uri.joinPath(this._extensionUri, 'table_view_ui', 'public', 'index.hbs')
+      vscode.Uri.joinPath(this._extensionUri, 'table_editor', 'public', 'index.hbs')
     );
     const indexHbs = new TextDecoder().decode(indexHbsRaw);
 
@@ -121,13 +121,11 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
     return template({ scriptUri, stylesUri, globalStylesUri, nonce, webviewCspSource: webview.cspSource });
   }
 
-  private changeJson(document: vscode.TextDocument, newJson: Array<any>) {
+  private changeJson(document: vscode.TextDocument, payload: any) {
     const json: Array<any> = this.getDocumentAsJson(document);
-    const newJsonArr: Array<any> = [];
-    json.forEach((o: any, i: number) => {
-      newJsonArr.push(merge(o, newJson[i]));
-    });
-    return this.updateTextDocument(document, newJsonArr);
+    const { rowIndex, key, textContent } = payload;
+    json[rowIndex][key] = textContent;
+    return this.updateTextDocument(document, json);
   }
 
 	/**

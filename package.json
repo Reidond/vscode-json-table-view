@@ -10,15 +10,15 @@
     "Other"
   ],
   "activationEvents": [
-    "onCustomEditor:vscode-json-table-view.jsonTableView"
+    "onCustomEditor:vscode-json-table-view.jsonTableEditor"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [],
     "customEditors": [
       {
-        "viewType": "vscode-json-table-view.jsonTableView",
-        "displayName": "JSON Table View",
+        "viewType": "vscode-json-table-view.jsonTableEditor",
+        "displayName": "JSON Table Editor",
         "selector": [
           {
             "filenamePattern": "*.json"

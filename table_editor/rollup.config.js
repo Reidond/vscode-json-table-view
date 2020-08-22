@@ -45,7 +45,7 @@ export default {
     sourcemap: true,
     format: "iife",
     name: "app",
-    file: "../dist/table_view_ui/bundle.js",
+    file: "../dist/table_editor/bundle.js",
   },
   plugins: [
     scss({
@@ -58,7 +58,7 @@ export default {
       // we'll extract any component CSS out into
       // a separate file - better for performance
       css: (css) => {
-        css.write("../dist/table_view_ui/bundle.css");
+        css.write("../dist/table_editor/bundle.css");
       },
       preprocess: sveltePreprocess(),
     }),
