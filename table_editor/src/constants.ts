@@ -1,1 +1,2 @@
-export const DEBUG_MODE = false;
+// @ts-nocheck
+export const DEBUG = !process.env.isProd;

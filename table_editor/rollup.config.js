@@ -7,6 +7,7 @@ import sveltePreprocess from "svelte-preprocess";
 import typescript from "@rollup/plugin-typescript";
 import scss from "rollup-plugin-scss";
 import sass from "sass";
+import replace from "@rollup/plugin-replace";
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -74,6 +75,14 @@ export default {
     }),
     commonjs(),
     typescript({ sourceMap: !production }),
+
+    replace({
+      process: JSON.stringify({
+        env: {
+          isProd: production,
+        },
+      }),
+    }),
 
     // In dev mode, call `npm run start` once
     // the bundle has been generated

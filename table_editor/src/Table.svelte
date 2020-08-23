@@ -8,8 +8,7 @@
   function onInput(rowIndex: number, key: string, textContent: string) {
     console.log("onInput", rowIndex, key, textContent);
     rows[rowIndex][key] = textContent;
-    console.log("rows", rows);
-    dispatch("changeJson", {
+    dispatch("inputCell", {
       rowIndex,
       key,
       textContent,
@@ -21,12 +20,18 @@
       target: EventTarget & HTMLTableDataCellElement;
     },
     rowIndex: number,
-    colIndex: number
+    key: string
   ) {
     if (event.keyCode == 13 && !event.shiftKey) {
       // prevent default behavior
+      const textContent = event.target.textContent;
       event.preventDefault();
-      console.log("onEnter", rowIndex, colIndex, event.target.textContent);
+      console.log("onEnter", rowIndex, key, textContent);
+      dispatch("keydownEnterCell", {
+        rowIndex,
+        key,
+        textContent,
+      });
     }
   }
 </script>
@@ -35,10 +40,16 @@
   table {
     border-collapse: collapse;
   }
+  thead > tr > th {
+    background-color: var(--vscode-activityBar-background);
+  }
   td,
   th {
-    border: 1px solid #999;
+    border: 1px solid var(--vscode-activityBar-activeBorder);
     padding: 10px;
+    font-family: var(--vscode-editor-font-family);
+    font-size: var(--vscode-editor-font-size);
+    font-weight: var(--vscode-editor-font-weight);
   }
 </style>
 
@@ -57,7 +68,7 @@
           <td
             contenteditable={true}
             on:input={(event) => onInput(rowIndex, key, event.target.textContent)}
-            on:keydown={(keyboardEvent) => onEnter(keyboardEvent, rowIndex, colIndex)}>
+            on:keydown={(keyboardEvent) => onEnter(keyboardEvent, rowIndex, key)}>
             {row[key]}
           </td>
         {/each}
