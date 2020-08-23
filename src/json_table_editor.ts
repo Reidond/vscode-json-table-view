@@ -178,7 +178,15 @@ class JsonTableEditorActions {
   }
 
   public addNewRow() {
-    vscode.window.showInformationMessage(this._document.fileName);
+    const json = this.getDocumentAsJson();
+    const column = Object.keys(json[0])
+      .map((v) => ({ [v]: "" }))
+      .reduce((accum, val) => {
+        Object.assign(accum, val);
+        return accum;
+      }, {});
+    json.push(column);
+    return this.updateTextDocument(json);
   }
 
   /**

@@ -4,6 +4,7 @@
   import type { Column } from "./types";
   import Table from "./Table.svelte";
   import AddNewRow from "./AddNewRow.svelte";
+  import { printTable } from "console-table-printer";
 
   let state;
   let rows: Column[];
@@ -13,6 +14,15 @@
     state = getState();
     if (state) {
       updateContent(state.text);
+    }
+  }
+
+  $: {
+    if (DEBUG) {
+      console.group("DEBUG");
+      console.log(columns);
+      printTable(rows);
+      console.groupEnd();
     }
   }
 
@@ -39,12 +49,14 @@
   }
 </script>
 
+<style lang="scss">
+  :global(#app) {
+    margin-top: 20px;
+  }
+</style>
+
 <main>
   {#if rows && columns}
-    {#if DEBUG}
-      <pre>{JSON.stringify(rows, null, 2)}</pre>
-      <pre>{JSON.stringify(columns, null, 2)}</pre>
-    {/if}
     <Table
       {rows}
       {columns}

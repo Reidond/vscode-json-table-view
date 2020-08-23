@@ -55,7 +55,7 @@
   .grid {
     &__container {
       display: grid;
-      grid-template-rows: 0.5fr 1fr;
+      grid-template-rows: 0.3fr 1fr;
       grid-template-columns: auto;
     }
     &__action-bar {
