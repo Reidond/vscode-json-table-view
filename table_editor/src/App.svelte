@@ -1,17 +1,16 @@
 <script lang="ts">
   import { DEBUG } from "./constants";
+  import { getState, setState, changeJson } from "./vscode";
   import type { Column } from "./types";
   import Table from "./Table.svelte";
-
-  // @ts-ignore
-  const vscode = acquireVsCodeApi();
+  import AddNewRow from "./AddNewRow.svelte";
 
   let state;
   let rows: Column[];
   let columns: string[];
 
   $: {
-    state = vscode.getState();
+    state = getState();
     if (state) {
       updateContent(state.text);
     }
@@ -28,22 +27,11 @@
 
         // Then persist state information.
         // This state is returned in the call to `vscode.getState` below when a webview is reloaded.
-        vscode.setState({ text });
+        setState({ text });
 
         return;
     }
   });
-
-  function changeJson(rowIndex: number, key: string, textContent: any) {
-    vscode.postMessage({
-      type: "changeJson",
-      payload: {
-        rowIndex,
-        key,
-        textContent,
-      },
-    });
-  }
 
   function updateContent(text) {
     rows = JSON.parse(text);
@@ -63,6 +51,10 @@
       on:inputCell={(event) => {
         const { rowIndex, key, textContent } = event.detail;
         changeJson(rowIndex, key, textContent);
-      }} />
+      }}>
+      <div slot="action-bar">
+        <AddNewRow />
+      </div>
+    </Table>
   {/if}
 </main>

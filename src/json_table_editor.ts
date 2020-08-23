@@ -1,8 +1,7 @@
-import * as vscode from 'vscode';
-import { getNonce } from './utils';
-import { TextDecoder } from 'util';
-import h from 'handlebars';
-import merge from 'lodash.merge';
+import * as vscode from "vscode";
+import { getNonce } from "./utils";
+import { TextDecoder } from "util";
+import h from "handlebars";
 
 interface IResources {
   scriptUri: vscode.Uri;
@@ -11,46 +10,52 @@ interface IResources {
   indexHbs: string;
 }
 
-export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider {
-
+export class JSONTableEditorProvider
+  implements vscode.CustomTextEditorProvider {
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
     const provider = new JSONTableEditorProvider(context);
-    const providerRegistration = vscode.window.registerCustomEditorProvider(JSONTableEditorProvider.viewType, provider);
+    const providerRegistration = vscode.window.registerCustomEditorProvider(
+      JSONTableEditorProvider.viewType,
+      provider
+    );
     return providerRegistration;
   }
 
-  private static readonly viewType = 'vscode-json-table-view.jsonTableEditor';
+  private static readonly viewType = "vscode-json-table-view.jsonTableEditor";
   private readonly _extensionUri: vscode.Uri;
+  private _actions: JsonTableEditorActions | undefined;
 
-  constructor(
-    private readonly context: vscode.ExtensionContext
-  ) {
+  constructor(private readonly context: vscode.ExtensionContext) {
     this._extensionUri = context.extensionUri;
   }
 
-	/**
-	 * Called when our custom editor is opened.
-	 * 
-	 * 
-	 */
+  /**
+   * Called when our custom editor is opened.
+   *
+   *
+   */
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,
     webviewPanel: vscode.WebviewPanel,
     _token: vscode.CancellationToken
   ): Promise<void> {
+    this._actions = new JsonTableEditorActions(document);
+
     // Setup initial content for the webview
     webviewPanel.webview.options = {
       enableScripts: true,
       localResourceRoots: [
-        vscode.Uri.joinPath(this._extensionUri, 'table_editor', 'public'),
-        vscode.Uri.joinPath(this._extensionUri, 'dist', 'table_editor'),
-      ]
+        vscode.Uri.joinPath(this._extensionUri, "table_editor", "public"),
+        vscode.Uri.joinPath(this._extensionUri, "dist", "table_editor"),
+      ],
     };
-    webviewPanel.webview.html = await this._getHtmlForWebview(webviewPanel.webview);
+    webviewPanel.webview.html = await this._getHtmlForWebview(
+      webviewPanel.webview
+    );
 
     function updateWebview() {
       webviewPanel.webview.postMessage({
-        type: 'update',
+        type: "update",
         text: document.getText(),
       });
     }
@@ -59,15 +64,17 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
     //
     // The text document acts as our model, so we have to sync change in the document to our
     // editor and sync changes in the editor back to the document.
-    // 
+    //
     // Remember that a single text document can also be shared between multiple custom
     // editors (this happens for example when you split a custom editor)
 
-    const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
-      if (e.document.uri.toString() === document.uri.toString()) {
-        updateWebview();
+    const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
+      (e) => {
+        if (e.document.uri.toString() === document.uri.toString()) {
+          updateWebview();
+        }
       }
-    });
+    );
 
     // Make sure we get rid of the listener when our editor is closed.
     webviewPanel.onDidDispose(() => {
@@ -75,10 +82,14 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
     });
 
     // Receive message from the webview.
-    webviewPanel.webview.onDidReceiveMessage(e => {
+    webviewPanel.webview.onDidReceiveMessage((e) => {
       switch (e.type) {
         case "changeJson":
-          this.changeJson(document, e.payload);
+          this.changeJson(e.payload);
+          return;
+        case "addNewRow":
+          this._actions?.addNewRow();
+          return;
         default:
           return;
       }
@@ -88,17 +99,36 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
   }
 
   private async _getResources(webview: vscode.Webview): Promise<IResources> {
-    const scriptPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'dist', 'table_editor', 'bundle.js');
+    const scriptPathOnDisk = vscode.Uri.joinPath(
+      this._extensionUri,
+      "dist",
+      "table_editor",
+      "bundle.js"
+    );
     const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
 
-    const stylesPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'dist', 'table_editor', 'bundle.css');
+    const stylesPathOnDisk = vscode.Uri.joinPath(
+      this._extensionUri,
+      "dist",
+      "table_editor",
+      "bundle.css"
+    );
     const stylesUri = webview.asWebviewUri(stylesPathOnDisk);
 
-    const globalStylesPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'public', 'global.css');
+    const globalStylesPathOnDisk = vscode.Uri.joinPath(
+      this._extensionUri,
+      "public",
+      "global.css"
+    );
     const globalStylesUri = webview.asWebviewUri(globalStylesPathOnDisk);
 
     const indexHbsRaw = await vscode.workspace.fs.readFile(
-      vscode.Uri.joinPath(this._extensionUri, 'table_editor', 'public', 'index.hbs')
+      vscode.Uri.joinPath(
+        this._extensionUri,
+        "table_editor",
+        "public",
+        "index.hbs"
+      )
     );
     const indexHbs = new TextDecoder().decode(indexHbsRaw);
 
@@ -106,67 +136,56 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
       scriptUri,
       stylesUri,
       globalStylesUri,
-      indexHbs
+      indexHbs,
     };
   }
 
-	/**
-	 * Get the static html used for the editor webviews.
-	 */
+  /**
+   * Get the static html used for the editor webviews.
+   */
   private async _getHtmlForWebview(webview: vscode.Webview) {
     const nonce = getNonce();
-    const { scriptUri, stylesUri, globalStylesUri, indexHbs } = await this._getResources(webview);
+    const {
+      scriptUri,
+      stylesUri,
+      globalStylesUri,
+      indexHbs,
+    } = await this._getResources(webview);
     const template = h.compile(indexHbs);
 
-    return template({ scriptUri, stylesUri, globalStylesUri, nonce, webviewCspSource: webview.cspSource });
+    return template({
+      scriptUri,
+      stylesUri,
+      globalStylesUri,
+      nonce,
+      webviewCspSource: webview.cspSource,
+    });
   }
 
-  private changeJson(document: vscode.TextDocument, payload: any) {
-    const json: Array<any> = this.getDocumentAsJson(document);
+  private changeJson(payload: any) {
+    const json: Array<any> = this._actions?.getDocumentAsJson();
     const { rowIndex, key, textContent } = payload;
     json[rowIndex][key] = textContent;
-    return this.updateTextDocument(document, json);
+    return this._actions?.updateTextDocument(json);
+  }
+}
+
+class JsonTableEditorActions {
+  private readonly _document: vscode.TextDocument;
+
+  constructor(document: vscode.TextDocument) {
+    this._document = document;
   }
 
-	/**
-   * JUST REFERENCE
-	 * Add a new scratch to the current document.
-	 */
-  /* private addNewScratch(document: vscode.TextDocument) {
-    const json = this.getDocumentAsJson(document);
-    const character = JSONTableEditorProvider.scratchCharacters[Math.floor(Math.random() * JSONTableEditorProvider.scratchCharacters.length)];
-    json.scratches = [
-      ...(Array.isArray(json.scratches) ? json.scratches : []),
-      {
-        id: getNonce(),
-        text: character,
-        created: Date.now(),
-      }
-    ];
+  public addNewRow() {
+    vscode.window.showInformationMessage(this._document.fileName);
+  }
 
-    return this.updateTextDocument(document, json);
-  } */
-
-	/**
-   * JUST REFERENCE
-	 * Delete an existing scratch from a document.
-	 */
-  /* private deleteScratch(document: vscode.TextDocument, id: string) {
-    const json = this.getDocumentAsJson(document);
-    if (!Array.isArray(json.scratches)) {
-      return;
-    }
-
-    json.scratches = json.scratches.filter((note: any) => note.id !== id);
-
-    return this.updateTextDocument(document, json);
-  } */
-
-	/**
-	 * Try to get a current document as json text.
-	 */
-  private getDocumentAsJson(document: vscode.TextDocument): any {
-    const text = document.getText();
+  /**
+   * Try to get a current document as json text.
+   */
+  public getDocumentAsJson(): any {
+    const text = this._document.getText();
     if (text.trim().length === 0) {
       return {};
     }
@@ -174,22 +193,25 @@ export class JSONTableEditorProvider implements vscode.CustomTextEditorProvider 
     try {
       return JSON.parse(text);
     } catch {
-      throw new Error('Could not get document as json. Content is not valid json');
+      throw new Error(
+        "Could not get document as json. Content is not valid json"
+      );
     }
   }
 
-	/**
-	 * Write out the json to a given document.
-	 */
-  private updateTextDocument(document: vscode.TextDocument, json: any) {
+  /**
+   * Write out the json to a given document.
+   */
+  public updateTextDocument(json: any) {
     const edit = new vscode.WorkspaceEdit();
 
     // Just replace the entire document every time for this example extension.
     // A more complete extension should compute minimal edits instead.
     edit.replace(
-      document.uri,
-      new vscode.Range(0, 0, document.lineCount, 0),
-      JSON.stringify(json, null, 2));
+      this._document.uri,
+      new vscode.Range(0, 0, this._document.lineCount, 0),
+      JSON.stringify(json, null, 2)
+    );
 
     return vscode.workspace.applyEdit(edit);
   }

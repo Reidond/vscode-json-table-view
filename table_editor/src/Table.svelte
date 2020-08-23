@@ -51,28 +51,46 @@
     font-size: var(--vscode-editor-font-size);
     font-weight: var(--vscode-editor-font-weight);
   }
+
+  .grid {
+    &__container {
+      display: grid;
+      grid-template-rows: 0.5fr 1fr;
+      grid-template-columns: auto;
+    }
+    &__action-bar {
+      display: grid;
+      grid-template-rows: 1fr;
+      grid-template-columns: auto;
+    }
+  }
 </style>
 
-<table>
-  <thead>
-    <tr>
-      {#each columns as key (key)}
-        <th>{key}</th>
-      {/each}
-    </tr>
-  </thead>
-  <tbody>
-    {#each rows as row, rowIndex (`${rowIndex}-row`)}
+<section class="grid__container">
+  <div class="grid__action-bar">
+    <slot name="action-bar" />
+  </div>
+  <table>
+    <thead>
       <tr>
-        {#each columns as key, colIndex (`${colIndex}_${key}_cell_row`)}
-          <td
-            contenteditable={true}
-            on:input={(event) => onInput(rowIndex, key, event.target.textContent)}
-            on:keydown={(keyboardEvent) => onEnter(keyboardEvent, rowIndex, key)}>
-            {row[key]}
-          </td>
+        {#each columns as key (key)}
+          <th>{key}</th>
         {/each}
       </tr>
-    {/each}
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      {#each rows as row, rowIndex (`${rowIndex}-row`)}
+        <tr>
+          {#each columns as key, colIndex (`${colIndex}_${key}_cell_row`)}
+            <td
+              contenteditable={true}
+              on:input={(event) => onInput(rowIndex, key, event.target.textContent)}
+              on:keydown={(keyboardEvent) => onEnter(keyboardEvent, rowIndex, key)}>
+              {row[key]}
+            </td>
+          {/each}
+        </tr>
+      {/each}
+    </tbody>
+  </table>
+</section>

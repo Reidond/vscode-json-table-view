@@ -10,11 +10,11 @@
     "Other"
   ],
   "activationEvents": [
-    "onCustomEditor:vscode-json-table-view.jsonTableEditor"
+    "onCustomEditor:vscode-json-table-view.jsonTableEditor",
+    "onCommand:vscode-json-table-view.addNewRow"
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [],
     "customEditors": [
       {
         "viewType": "vscode-json-table-view.jsonTableEditor",
